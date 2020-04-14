@@ -23,7 +23,7 @@ init([]) ->
     ChildSpecs = [
         #{
             id => model,
-            start => {flexi_model, start_link, [filename:join(code:priv_dir(topo), "flexi_model.bin")]}
+            start => {flexi_model, start_link, [filename:join(code:priv_dir(flexi_model), "flexi_model.bin")]}
         }
     ],
     {ok, {SupFlags, ChildSpecs}}.

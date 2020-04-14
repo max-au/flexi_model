@@ -108,35 +108,63 @@ instance/node cluster status, to verify this topology is acceptable.
 
 Session example, rebar3 shell
 
-    % create application core, that has no dependencies, and no published services
+Create application `core`, that has no dependencies, and no published services:
+
     1> flexi_model:add_application(core, [], undefined).
     ok
-    % create application offline depending on core, with 32 partitions
+    
+Create application `offline` depending on core, with 32 partitions:
+
     2> flexi_model:add_application(offline, [core], 32).
     ok
-    3> % Create chat application, that depends on core, and has a weak
-    % dependency on offline application, requiring 1 capacity to start,
-    % and 2 to be operational (4 max capacity)
-    % This application also has weak dependency on itself, meaning that
-    % unless there is 4 other chat apps running, it is in a degraded state.
+
+Create chat application, that depends on core, and has a weak
+dependency on offline application, requiring 1 capacity to start,
+and 2 to be operational (4 max capacity)
+
+This application also has weak dependency on itself, meaning that
+unless there is 4 other chat apps running, it is in a degraded state.
+
     4> flexi_model:add_application(chat, [core, {offline, {1, 2, 4}}, {chat, {0, 4, 8}}], pool).
     ok
-    % create releases for chat & offline
+
+Create releases for chat & offline:
+
     4> flexi_model:add_release(chat_rel, [chat]).
     ok
     5> flexi_model:add_release(off_rel, [offline]).
     ok
-    % create nodes - off1, which is in asia, runs off_rel, and provides
-    % partitions 1-3-5-7...-31
+
+Create nodes - off1, which is in asia, runs off_rel, and provides partitions 1-3-5-7...-31
+
     7> flexi_model:add_node(off1, asia, off_rel, #{offline => lists:seq(1, 32, 2)}).
     ok
-    % start node
+
+Start off1 node just created:
+
     8> flexi_model:start_node(off1).
     ok
-    % view cluster state
+
+View cluster state:
+
     9> flexi_model:print().
-    <...>
-    % add and start chat nodes
+    Application        Depends On                                                             Distributed
+        chat           core, offline (1/2/4), chat (0/4/8)                                    pool
+        core
+        offline        core                                                                   32
+    
+    Release            Applications
+        chat_rel       [chat,core]
+        off_rel        [core,offline]
+    
+    Node                     Release             State      Region/Partitions
+    off1                     off_rel  :             up      asia
+        core                          :        running
+        offline                       :        running      [1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31]
+    
+    
+Add and start chat nodes:
+
     10> flexi_model:add_node(chat1, asia, chat_rel, #{}).
     ok
     11> flexi_model:add_node(chat2, asia, chat_rel, #{}).
@@ -145,16 +173,30 @@ Session example, rebar3 shell
     ok
     13> flexi_model:start_node(chat2).
     ok
-    % print cluster state, ensure chat app does not start 
-    % keeps in starting state, until another offline node is added
-    % and started, with partition mappings of 2-4-...-32
+    
+    
+Print cluster state, ensure chat app does not start 
+keeps in starting state, until another offline node is added
+and started, with partition mappings of 2-4-...-32
+
     15> flexi_model:add_node(off2, asia, off_rel, #{offline => lists:seq(2, 32, 2)}).
     ok
     16> flexi_model:start_node(off2).
     ok
-    % ensure chat app started, and runs degraded, because 4 chat nodes are needed
-    % to become running (healthy)
-    ...
-    % save the model
+    
+Ensure chat app started, and runs degraded, because 4 chat nodes are needed
+to become running (healthy).
+
+Save the model
+
     26> flexi_model:save().
     ok
+
+Break out of rebar3 shell
+
+    27> q().
+
+Get back, view the cluster again:
+
+    1> flexi_model:print().
+    <...>
