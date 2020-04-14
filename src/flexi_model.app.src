@@ -1,0 +1,15 @@
+{application, flexi_model,
+ [{description, "flexi_model: model of flexible network topology"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {flexi_model_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["BSD 3-clause clear"]},
+  {links, [{"GitHub", "https://github.com/max-au/flexi_model"}]}
+ ]}.
